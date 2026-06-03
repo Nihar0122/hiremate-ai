@@ -9,6 +9,9 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [error, setError] = useState("");
+const [success, setSuccess] = useState("");
+
   const handleLogin = async (e) => {
 
     e.preventDefault();
@@ -27,7 +30,7 @@ function Login() {
 
       localStorage.setItem("token", res.data.token);
 
-      alert(res.data.message);
+      setSuccess(res.data.message);
 
       console.log(res.data);
 
@@ -39,8 +42,7 @@ function Login() {
 
       console.log(err);
 
-      alert(err.response.data.message);
-
+      setError(err.response?.data?.message || "Something went wrong");
     }
 
   };
@@ -73,7 +75,8 @@ function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-
+        {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+{success && <p className="text-green-400 text-sm mb-3">{success}</p>}
         <button
           type="submit"
           className="w-full bg-green-500 hover:bg-green-600 transition-all p-3 rounded font-bold"
