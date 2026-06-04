@@ -203,6 +203,19 @@ function ResumeAnalyzer() {
             </div>
           )}
 
+          {/* Interview CTA */}
+          <div className="bg-white/5 border border-purple-500/30 rounded-2xl p-6 text-center">
+            <h3 className="font-bold text-purple-400 mb-2">🎯 Ready to Practice?</h3>
+            <p className="text-gray-400 text-sm mb-4">
+              Prepare for interviews based on your skill gaps
+            </p>
+            <a href="/interview">
+              <button className="bg-purple-600 hover:bg-purple-700 px-8 py-3 rounded-lg font-semibold transition-all">
+                Start AI Interview Simulator →
+              </button>
+            </a>
+          </div>
+
         </div>
       )}
     </div>
@@ -210,3 +223,5 @@ function ResumeAnalyzer() {
 }
 
 export default ResumeAnalyzer;
+          
+

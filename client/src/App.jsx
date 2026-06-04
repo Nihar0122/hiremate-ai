@@ -8,6 +8,7 @@ import ResumeUpload from "./pages/ResumeUpload";
 import ATSResult from "./pages/ATSResult";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import PrivateRoute from "./components/PrivateRoute";
+import Interview from "./pages/Interview";
 
 function App() {
 
@@ -77,6 +78,12 @@ function App() {
                 </button>
               </Link>
 
+              <Link to="/interview">
+                <button className="hover:text-purple-400">
+                  Interview
+                </button>
+              </Link>
+
               <button
                 onClick={handleLogout}
                 className="bg-red-500 px-5 py-2 rounded-lg hover:bg-red-600 transition-all"
@@ -110,6 +117,9 @@ function App() {
           } />
           <Route path="/ats-result" element={
             <PrivateRoute><ATSResult /></PrivateRoute>
+          } />
+          <Route path="/interview" element={
+            <PrivateRoute><Interview /></PrivateRoute>
           } />
 
         </Routes>
