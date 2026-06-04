@@ -4,108 +4,205 @@ import axios from "axios";
 function ResumeAnalyzer() {
   const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
-  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleUpload = async () => {
+    if (!file) {
+      setError("Please select a PDF file first");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("resume", file);
 
+    setLoading(true);
+    setError("");
+    setResult(null);
+
     try {
+      const token = localStorage.getItem("token");
+
       const res = await axios.post(
         "http://localhost:5000/api/analyze/analyze",
-        formData
-      );
-
-      setResult(res.data);
-      setQuestions([]); // Clear old questions
-    } catch (err) {
-      console.log(err);
-      alert("Analysis failed");
-    }
-  };
-
-  const generateQuestions = async () => {
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/api/interview",
+        formData,
         {
-          resumeText: result?.matchedSkills?.join(" "),
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          }
         }
       );
 
-      setQuestions(response.data.questions);
-    } catch (error) {
-      console.log(error);
-      alert("Failed to generate questions");
+      setResult(res.data);
+
+    } catch (err) {
+      console.log(err);
+      setError(err.response?.data?.message || "Analysis failed");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const getScoreColor = (score) => {
+    if (score >= 80) return "text-green-400";
+    if (score >= 60) return "text-yellow-400";
+    return "text-red-400";
+  };
+
+  const getScoreBg = (score) => {
+    if (score >= 80) return "border-green-400";
+    if (score >= 60) return "border-yellow-400";
+    return "border-red-400";
+  };
+
   return (
-    <div className="p-10 text-white">
-      <h1 className="text-4xl font-bold mb-5">
-        ATS Resume Analyzer 🤖
-      </h1>
+    <div className="max-w-3xl mx-auto text-white">
+      <h1 className="text-4xl font-bold mb-2">ATS Resume Analyzer 🤖</h1>
+      <p className="text-gray-400 mb-8">
+        Upload your resume and get instant AI-powered ATS feedback
+      </p>
 
-      <input
-        type="file"
-        onChange={(e) => setFile(e.target.files[0])}
-      />
+      {/* Upload Box */}
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-8 mb-6">
+        <label className="block text-sm text-gray-400 mb-3">
+          Upload Resume (PDF only)
+        </label>
 
-      <button
-        onClick={handleUpload}
-        className="bg-blue-500 px-4 py-2 rounded ml-3"
-      >
-        Analyze Resume
-      </button>
-
-      {result && (
-        <div className="mt-10">
-          <h2 className="text-2xl mb-4">
-            ATS Score: {result.atsScore}%
-          </h2>
-
-          <h3 className="text-green-400 font-bold">
-            Matched Skills
-          </h3>
-
-          <ul className="mb-4">
-            {result.matchedSkills.map((skill) => (
-              <li key={skill}>✅ {skill}</li>
-            ))}
-          </ul>
-
-          <h3 className="text-red-400 font-bold">
-            Missing Skills
-          </h3>
-
-          <ul className="mb-6">
-            {result.missingSkills.map((skill) => (
-              <li key={skill}>❌ {skill}</li>
-            ))}
-          </ul>
+        <div className="flex items-center gap-4">
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => {
+              setFile(e.target.files[0]);
+              setError("");
+              setResult(null);
+            }}
+            className="text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 
+                       file:rounded-lg file:border-0 file:bg-blue-600 
+                       file:text-white hover:file:bg-blue-700 cursor-pointer"
+          />
 
           <button
-            onClick={generateQuestions}
-            className="bg-purple-600 px-4 py-2 rounded"
+            onClick={handleUpload}
+            disabled={loading || !file}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 
+                       disabled:cursor-not-allowed px-6 py-2 rounded-lg 
+                       font-semibold transition-all"
           >
-            Generate Interview Questions
+            {loading ? "Analyzing..." : "Analyze Resume"}
           </button>
+        </div>
 
-          {questions.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-2xl font-bold mb-4">
-                Interview Questions
-              </h2>
+        {file && (
+          <p className="text-sm text-gray-400 mt-3">
+            Selected: {file.name}
+          </p>
+        )}
 
-              <ul>
-                {questions.map((question, index) => (
-                  <li key={index} className="mb-3">
-                    {index + 1}. {question}
+        {error && (
+          <p className="text-red-400 text-sm mt-3">{error}</p>
+        )}
+      </div>
+
+      {/* Loading */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="text-5xl mb-4">🤖</div>
+          <p className="text-gray-400 text-lg">
+            AI is analyzing your resume...
+          </p>
+          <p className="text-gray-600 text-sm mt-2">
+            This may take 10-15 seconds
+          </p>
+        </div>
+      )}
+
+      {/* Results */}
+      {result && !loading && (
+        <div className="space-y-6">
+
+          {/* Score + Probability */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className={`bg-white/5 border-2 ${getScoreBg(result.atsScore)} 
+                            rounded-2xl p-6 text-center`}>
+              <p className="text-gray-400 text-sm mb-2">ATS Score</p>
+              <p className={`text-6xl font-bold ${getScoreColor(result.atsScore)}`}>
+                {result.atsScore}%
+              </p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
+              <p className="text-gray-400 text-sm mb-2">
+                Placement Probability
+              </p>
+              <p className={`text-4xl font-bold mt-2
+                ${result.placementProbability === "High" ? "text-green-400" :
+                  result.placementProbability === "Medium" ? "text-yellow-400" :
+                  "text-red-400"}`}>
+                {result.placementProbability}
+              </p>
+            </div>
+          </div>
+
+          {/* Summary */}
+          {result.summary && (
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="font-bold text-lg mb-2">📋 Summary</h3>
+              <p className="text-gray-300">{result.summary}</p>
+            </div>
+          )}
+
+          {/* Skills */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="font-bold text-green-400 mb-3">
+                ✅ Matched Skills
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {result.matchedSkills.map((skill) => (
+                  <span key={skill}
+                    className="bg-green-500/20 text-green-300 
+                               px-3 py-1 rounded-full text-sm">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="font-bold text-red-400 mb-3">
+                ❌ Missing Skills
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {result.missingSkills.map((skill) => (
+                  <span key={skill}
+                    className="bg-red-500/20 text-red-300 
+                               px-3 py-1 rounded-full text-sm">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Suggestions */}
+          {result.suggestions && (
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="font-bold text-blue-400 mb-3">
+                💡 Suggestions to Improve
+              </h3>
+              <ul className="space-y-2">
+                {result.suggestions.map((s, i) => (
+                  <li key={i} className="text-gray-300 flex gap-2">
+                    <span className="text-blue-400">{i + 1}.</span>
+                    {s}
                   </li>
                 ))}
               </ul>
             </div>
           )}
+
         </div>
       )}
     </div>

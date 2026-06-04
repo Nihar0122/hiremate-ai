@@ -1,64 +1,65 @@
 const fs = require("fs");
 const pdfParse = require("pdf-parse");
+const fetch = require("node-fetch");
 
 const analyzeResume = async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
     const dataBuffer = fs.readFileSync(req.file.path);
     const pdfData = await pdfParse(dataBuffer);
+    const resumeText = pdfData.text;
+    fs.unlinkSync(req.file.path);
 
-    const text = pdfData.text.toLowerCase();
+    const prompt = `You are an expert ATS resume analyzer.
+Analyze this resume and return ONLY a JSON object with no extra text, no markdown:
 
-    const skills = [
-      "javascript",
-      "react",
-      "node",
-      "express",
-      "mongodb",
-      "html",
-      "css",
-      "git",
-      "docker",
-      "aws",
-      "python",
-    ];
-
-    let matchedSkills = [];
-
-    skills.forEach((skill) => {
-      if (text.includes(skill)) {
-        matchedSkills.push(skill);
-      }
-    });
-
-    const atsScore = Math.round(
-  (matchedSkills.length / skills.length) * 100
-);
-
-let placementProbability = "Low";
-
-if (atsScore >= 80) {
-  placementProbability = "High";
-} else if (atsScore >= 60) {
-  placementProbability = "Medium";
+{
+  "atsScore": <number 0-100>,
+  "placementProbability": "<Low/Medium/High>",
+  "matchedSkills": ["skill1", "skill2"],
+  "missingSkills": ["skill1", "skill2"],
+  "suggestions": ["suggestion1", "suggestion2", "suggestion3"],
+  "summary": "<2 sentence overall assessment>"
 }
 
-const missingSkills = skills.filter(
-  (skill) => !matchedSkills.includes(skill)
-);
+Resume:
+${resumeText}`;
 
-res.json({
-  message: "Resume analyzed successfully 🚀",
-  atsScore,
-  matchedSkills,
-  missingSkills,
-  placementProbability,
-});
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      }
+    );
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.log("Gemini error:", data);
+      return res.status(500).json({ message: "AI analysis failed", error: data });
+    }
+
+    const responseText = data.candidates[0].content.parts[0].text;
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    const analysis = JSON.parse(jsonMatch[0]);
+
+    res.json({
+      message: "Resume analyzed successfully 🚀",
+      ...analysis
+    });
+
   } catch (error) {
     console.log(error);
-
     res.status(500).json({
       message: "Resume analysis failed",
-      error: error.message,
+      error: error.message
     });
   }
 };

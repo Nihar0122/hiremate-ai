@@ -5,7 +5,7 @@ const authMiddleware = require("./middleware/authMiddleware");
 const resumeAnalyzerRoutes = require("./routes/resumeAnalyzerRoutes");
 
 require("dotenv").config({ override: true });
-console.log("SERVER ENV KEY =", process.env.OPENAI_API_KEY);
+console.log("GEMINI KEY =", process.env.GEMINI_API_KEY);
 
 const resumeRoutes = require("./routes/resumeRoutes");
 

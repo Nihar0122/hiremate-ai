@@ -36,7 +36,7 @@ const [success, setSuccess] = useState("");
 
       // redirect to dashboard
 
-      navigate("/dashboard");
+      window.location.href = "/dashboard";
 
     } catch (err) {
 
