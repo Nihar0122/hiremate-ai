@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-function Login() {
+function Login({ setToken }) {
 
   const navigate = useNavigate();
 
@@ -29,7 +29,9 @@ const [success, setSuccess] = useState("");
       // save token
 
       localStorage.setItem("token", res.data.token);
-
+      localStorage.setItem("user", JSON.stringify(res.data.user));  // ADD
+      if (setToken) setToken(res.data.token);                        // ADD
+      window.location.href = "/dashboard";                           // ADD
       setSuccess(res.data.message);
 
       console.log(res.data);

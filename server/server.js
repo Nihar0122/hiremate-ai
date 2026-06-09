@@ -12,7 +12,7 @@ const resumeRoutes = require("./routes/resumeRoutes");
 const authRoutes = require("./routes/authRoutes");
 
 const interviewRoutes = require("./routes/interviewRoutes");
-
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 const app = express();
 
@@ -28,6 +28,9 @@ app.use("/api/resume", resumeRoutes);
 app.use("/api/analyze", resumeAnalyzerRoutes);
 
 app.use("/api/interview", interviewRoutes);
+
+app.use("/api/dashboard", dashboardRoutes);
+
 
 // mongodb connection
 mongoose.connect(process.env.MONGO_URI)

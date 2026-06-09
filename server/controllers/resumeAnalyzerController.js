@@ -1,6 +1,8 @@
 const fs = require("fs");
 const pdfParse = require("pdf-parse");
 const fetch = require("node-fetch");
+const ResumeResult = require("../models/ResumeResult");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const analyzeResume = async (req, res) => {
   try {
@@ -49,6 +51,9 @@ ${resumeText}`;
     const responseText = data.candidates[0].content.parts[0].text;
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     const analysis = JSON.parse(jsonMatch[0]);
+
+    const ResumeResult = require("../models/ResumeResult");
+const authMiddleware = require("../middleware/authMiddleware");
 
     res.json({
       message: "Resume analyzed successfully 🚀",

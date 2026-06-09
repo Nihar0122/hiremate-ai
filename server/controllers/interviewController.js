@@ -1,4 +1,5 @@
 const fetch = require("node-fetch");
+const InterviewResult = require("../models/InterviewResult");
 
 // Generate questions based on job role
 const generateQuestions = async (req, res) => {
@@ -92,4 +93,23 @@ Candidate's Answer: ${answer}`;
   }
 };
 
-module.exports = { generateQuestions, evaluateAnswer };
+const saveInterview = async (req, res) => {
+  try {
+    const { jobRole, overallScore, totalQuestions, evaluations } = req.body;
+    const userId = req.user.id;
+
+    await InterviewResult.create({
+      userId,
+      jobRole,
+      overallScore,
+      totalQuestions,
+      evaluations
+    });
+
+    res.json({ message: "Interview saved successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { generateQuestions, evaluateAnswer, saveInterview };

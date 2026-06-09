@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, Link, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -7,19 +7,13 @@ import Dashboard from "./pages/Dashboard";
 import ResumeUpload from "./pages/ResumeUpload";
 import ATSResult from "./pages/ATSResult";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
-import PrivateRoute from "./components/PrivateRoute";
 import Interview from "./pages/Interview";
+import PrivateRoute from "./components/PrivateRoute";
+import Sidebar from "./components/Sidebar";
 
 function App() {
-
   const navigate = useNavigate();
   const [token, setToken] = useState(localStorage.getItem("token"));
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
-    navigate("/login");
-  };
 
   useEffect(() => {
     setToken(localStorage.getItem("token"));
@@ -28,84 +22,28 @@ function App() {
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setToken(null);
+    navigate("/login");
+  };
+
   return (
-    <div className="bg-black text-white min-h-screen">
+    <div className="min-h-screen bg-[#060608] text-white flex">
 
-      {/* Navbar */}
-      <nav className="flex justify-between items-center px-10 py-5 border-b border-gray-800 bg-black/40 backdrop-blur-lg sticky top-0">
+      {/* Sidebar */}
+      <Sidebar token={token} onLogout={handleLogout} />
 
-        <h1 className="text-3xl font-bold text-blue-500">
-          HireMate AI 🚀
-        </h1>
-
-        <div className="flex gap-5">
-
-          <Link to="/">
-            <button className="hover:text-blue-400 transition-all">
-              Home
-            </button>
-          </Link>
-
-          {/* IF NOT LOGGED IN */}
-          {!token && (
-            <>
-              <Link to="/login">
-                <button className="bg-green-500 px-5 py-2 rounded-lg hover:bg-green-600 transition-all">
-                  Login
-                </button>
-              </Link>
-
-              <Link to="/register">
-                <button className="bg-purple-500 px-5 py-2 rounded-lg hover:bg-purple-600 transition-all">
-                  Register
-                </button>
-              </Link>
-            </>
-          )}
-
-          {/* IF LOGGED IN */}
-          {token && (
-            <>
-              <Link to="/dashboard">
-                <button className="bg-yellow-500 px-5 py-2 rounded-lg hover:bg-yellow-600 transition-all">
-                  Dashboard
-                </button>
-              </Link>
-
-              <Link to="/resume-analyzer">
-                <button className="hover:text-blue-400">
-                  Resume Analyzer
-                </button>
-              </Link>
-
-              <Link to="/interview">
-                <button className="hover:text-purple-400">
-                  Interview
-                </button>
-              </Link>
-
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 px-5 py-2 rounded-lg hover:bg-red-600 transition-all"
-              >
-                Logout
-              </button>
-            </>
-          )}
-
-        </div>
-      </nav>
-
-      {/* Routes */}
-      <div className="p-10">
+      {/* Main content — offset by sidebar width */}
+      <main className={`flex-1 transition-all duration-300 ${token ? "ml-56" : "ml-0"}`}>
         <Routes>
-
-          {/* PUBLIC ROUTES */}
+          {/* Public */}
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Login setToken={setToken} />} />
           <Route path="/register" element={<Register />} />
 
-          {/* PROTECTED ROUTES */}
+          {/* Protected */}
           <Route path="/dashboard" element={
             <PrivateRoute><Dashboard /></PrivateRoute>
           } />
@@ -121,9 +59,8 @@ function App() {
           <Route path="/interview" element={
             <PrivateRoute><Interview /></PrivateRoute>
           } />
-
         </Routes>
-      </div>
+      </main>
 
     </div>
   );
