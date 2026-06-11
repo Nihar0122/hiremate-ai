@@ -30,20 +30,15 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060608] text-white flex">
-
-      {/* Sidebar */}
+    <div className="min-h-screen bg-slate-50 flex">
       <Sidebar token={token} onLogout={handleLogout} />
 
-      {/* Main content — offset by sidebar width */}
-      <main className={`flex-1 transition-all duration-300 ${token ? "ml-56" : "ml-0"}`}>
+      <main className={`flex-1 transition-all duration-300 ${token ? "ml-64" : "ml-0"}`}>
         <Routes>
-          {/* Public */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login setToken={setToken} />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Protected */}
           <Route path="/dashboard" element={
             <PrivateRoute><Dashboard /></PrivateRoute>
           } />
@@ -61,7 +56,6 @@ function App() {
           } />
         </Routes>
       </main>
-
     </div>
   );
 }

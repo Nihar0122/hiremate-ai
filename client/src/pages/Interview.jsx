@@ -25,8 +25,7 @@ function Interview() {
   const [sessionComplete, setSessionComplete] = useState(false);
   const [started, setStarted] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [inputMode, setInputMode] = useState("text"); // "text" | "voice"
-  const [transcript, setTranscript] = useState("");
+  const [inputMode, setInputMode] = useState("text");
 
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
@@ -37,7 +36,6 @@ function Interview() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Setup speech recognition
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
@@ -49,34 +47,22 @@ function Interview() {
 
     recognition.onresult = (event) => {
       let finalTranscript = "";
-      let interimTranscript = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
           finalTranscript += event.results[i][0].transcript;
-        } else {
-          interimTranscript += event.results[i][0].transcript;
         }
       }
-      setTranscript((prev) => prev + finalTranscript);
-      setInput((prev) => prev + finalTranscript || interimTranscript);
+      setInput((prev) => prev + finalTranscript);
     };
 
-    recognition.onerror = (e) => {
-      console.log("Speech error:", e.error);
-      setIsRecording(false);
-    };
-
-    recognition.onend = () => {
-      setIsRecording(false);
-    };
-
+    recognition.onend = () => setIsRecording(false);
     recognitionRef.current = recognition;
   }, []);
 
   const toggleRecording = () => {
     const recognition = recognitionRef.current;
     if (!recognition) {
-      alert("Voice input is not supported in your browser. Please use Chrome.");
+      alert("Voice not supported. Use Chrome.");
       return;
     }
     if (isRecording) {
@@ -84,7 +70,6 @@ function Interview() {
       setIsRecording(false);
     } else {
       setInput("");
-      setTranscript("");
       recognition.start();
       setIsRecording(true);
     }
@@ -95,13 +80,6 @@ function Interview() {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.95;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(v =>
-      v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Karen")
-    );
-    if (preferred) utterance.voice = preferred;
     window.speechSynthesis.speak(utterance);
   };
 
@@ -126,7 +104,7 @@ function Interview() {
       setCurrentQ(0);
       setSessionComplete(false);
 
-      const welcome = `Hi! I'm your AI interviewer for the ${jobRole} role. We'll go through ${qs.length} questions. Let's begin!`;
+      const welcome = `Starting interview for ${jobRole}. We'll go through ${qs.length} questions.`;
       setTimeout(() => {
         addMessage("bot", welcome);
         if (inputMode === "voice") speakText(welcome);
@@ -151,10 +129,9 @@ function Interview() {
     }
     const userAnswer = input.trim();
     setInput("");
-    setTranscript("");
     setEvaluating(true);
     addMessage("user", userAnswer);
-    addMessage("bot", "...", { type: "typing" });
+    addMessage("bot", "Evaluating...", { type: "typing" });
 
     try {
       const res = await axios.post(
@@ -179,7 +156,7 @@ function Interview() {
       });
 
       if (inputMode === "voice") {
-        speakText(`Score: ${evaluation.score} out of 10. ${evaluation.feedback}`);
+        speakText(`Score: ${evaluation.score}. ${evaluation.feedback}`);
       }
 
       const nextQ = currentQ + 1;
@@ -187,11 +164,7 @@ function Interview() {
         const finalAvg = Math.round(
           newEvaluations.reduce((a, b) => a + b.score, 0) / newEvaluations.length * 10
         );
-        const finalMsg = `Interview complete! You scored ${finalAvg}% overall. ${
-          finalAvg >= 80 ? "Excellent performance — you're interview ready!" :
-          finalAvg >= 60 ? "Good effort! A bit more practice and you'll nail it." :
-          "Keep practicing — review the feedback and try again."
-        }`;
+        const finalMsg = `Interview complete. Final score: ${finalAvg}%.`;
         setTimeout(() => {
           addMessage("bot", finalMsg, { type: "final", score: finalAvg });
           if (inputMode === "voice") speakText(finalMsg);
@@ -219,7 +192,7 @@ function Interview() {
       }
     } catch (err) {
       setMessages((prev) => prev.filter((m) => m.meta?.type !== "typing"));
-      addMessage("bot", "Sorry, something went wrong. Please try again.");
+      addMessage("bot", "Error evaluating. Please try again.");
     } finally {
       setEvaluating(false);
     }
@@ -233,15 +206,15 @@ function Interview() {
   };
 
   const getScoreColor = (score) => {
-    if (score >= 8) return "text-emerald-400";
-    if (score >= 6) return "text-amber-400";
-    return "text-rose-400";
+    if (score >= 8) return "text-emerald-700";
+    if (score >= 6) return "text-amber-700";
+    return "text-red-700";
   };
 
   const getScoreBg = (score) => {
-    if (score >= 8) return "bg-emerald-500/10 border-emerald-500/20";
-    if (score >= 6) return "bg-amber-500/10 border-amber-500/20";
-    return "bg-rose-500/10 border-rose-500/20";
+    if (score >= 8) return "bg-emerald-50 border-emerald-200";
+    if (score >= 6) return "bg-amber-50 border-amber-200";
+    return "bg-red-50 border-red-200";
   };
 
   const renderMessage = (msg) => {
@@ -254,160 +227,134 @@ function Interview() {
     return (
       <div key={msg.id} className={`flex gap-3 ${isBot ? "justify-start" : "justify-end"} mb-4`}>
         {isBot && (
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">
-            🤖
+          <div className="w-8 h-8 rounded-lg bg-slate-200 flex items-center justify-center text-xs flex-shrink-0 mt-0.5 font-semibold text-slate-700">
+            AI
           </div>
         )}
         <div className={`max-w-[75%]`}>
           {isTyping && (
-            <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3">
-              <div className="flex gap-1 items-center">
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-              </div>
+            <div className="bg-slate-100 border border-slate-200 rounded-lg px-4 py-3">
+              <p className="text-slate-600 text-sm">Evaluating...</p>
             </div>
           )}
           {isQuestion && !isTyping && (
-            <div className="bg-gradient-to-br from-violet-600/20 to-violet-600/5 border border-violet-500/30 rounded-2xl rounded-tl-sm p-4">
-              <p className="text-xs text-violet-400 font-semibold mb-2 uppercase tracking-wider">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-xs text-blue-700 font-semibold mb-2 uppercase tracking-wide">
                 Question {msg.meta.qIndex + 1}
               </p>
-              <p className="text-white font-medium leading-relaxed">{msg.content}</p>
-              {inputMode === "voice" && (
-                <button onClick={() => speakText(msg.content)}
-                  className="mt-3 flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 transition-colors">
-                  🔊 Read aloud
-                </button>
-              )}
+              <p className="text-slate-900 font-medium leading-relaxed">{msg.content}</p>
             </div>
           )}
           {isFeedback && (
-            <div className={`border rounded-2xl rounded-tl-sm p-4 space-y-3 ${getScoreBg(msg.meta.score)}`}>
+            <div className={`border rounded-lg p-4 space-y-3 ${getScoreBg(msg.meta.score)}`}>
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-300">{msg.content}</p>
-                <span className={`text-xl font-black ml-3 flex-shrink-0 ${getScoreColor(msg.meta.score)}`}>
+                <p className="text-sm text-slate-700">{msg.content}</p>
+                <span className={`text-lg font-semibold ml-3 flex-shrink-0 ${getScoreColor(msg.meta.score)}`}>
                   {msg.meta.score}/10
                 </span>
               </div>
               {msg.meta.strongPoints?.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {msg.meta.strongPoints.map((p, i) => (
-                    <span key={i} className="text-xs bg-emerald-500/15 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/20">✅ {p}</span>
+                    <span key={i} className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200">
+                      {p}
+                    </span>
                   ))}
                 </div>
               )}
               {msg.meta.improvements?.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {msg.meta.improvements.map((p, i) => (
-                    <span key={i} className="text-xs bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/20">💡 {p}</span>
+                    <span key={i} className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded border border-amber-200">
+                      {p}
+                    </span>
                   ))}
                 </div>
               )}
             </div>
           )}
           {isFinal && (
-            <div className="bg-gradient-to-br from-pink-600/20 to-orange-600/10 border border-pink-500/30 rounded-2xl rounded-tl-sm p-4">
-              <p className="text-white leading-relaxed">{msg.content}</p>
-              <div className="mt-4 flex gap-3">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <p className="text-slate-900 leading-relaxed mb-4">{msg.content}</p>
+              <div className="flex gap-3">
                 <button
                   onClick={() => { setStarted(false); setQuestions([]); setMessages([]); setEvaluations([]); setSessionComplete(false); setJobRole(""); }}
-                  className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 py-2 rounded-xl text-sm font-medium transition-all">
+                  className="flex-1 bg-white border border-slate-200 text-slate-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
                   Try Again
                 </button>
                 <a href="/dashboard" className="flex-1">
-                  <button className="w-full bg-gradient-to-r from-violet-600 to-pink-600 py-2 rounded-xl text-sm font-medium hover:opacity-90 transition-all">
-                    View Dashboard →
+                  <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                    View Dashboard
                   </button>
                 </a>
               </div>
             </div>
           )}
           {!isTyping && !isQuestion && !isFeedback && !isFinal && isBot && (
-            <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3">
-              <p className="text-gray-200 text-sm leading-relaxed">{msg.content}</p>
+            <div className="bg-slate-100 border border-slate-200 rounded-lg px-4 py-3">
+              <p className="text-slate-700 text-sm leading-relaxed">{msg.content}</p>
             </div>
           )}
           {!isBot && (
-            <div className="bg-gradient-to-br from-violet-600/30 to-violet-600/10 border border-violet-500/20 rounded-2xl rounded-tr-sm px-4 py-3">
-              <p className="text-white text-sm leading-relaxed">{msg.content}</p>
-              {msg.meta?.isVoice && (
-                <p className="text-xs text-violet-400 mt-1">🎙️ Voice answer</p>
-              )}
+            <div className="bg-blue-100 border border-blue-200 rounded-lg px-4 py-3">
+              <p className="text-slate-900 text-sm leading-relaxed">{msg.content}</p>
             </div>
           )}
         </div>
         {!isBot && (
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-pink-600 flex items-center justify-center text-sm flex-shrink-0 mt-0.5 font-bold">
-            U
+          <div className="w-8 h-8 rounded-lg bg-blue-200 flex items-center justify-center text-xs flex-shrink-0 mt-0.5 font-semibold text-blue-900">
+            You
           </div>
         )}
       </div>
     );
   };
 
-  // Role selector
   if (!started) {
     return (
-      <div className="min-h-screen bg-[#060608] flex items-center justify-center p-6">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-violet-600/8 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-pink-600/6 rounded-full blur-3xl" />
-        </div>
-        <div className="relative w-full max-w-md">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-3xl mx-auto mb-4">🎯</div>
-            <h1 className="text-3xl font-black text-white mb-2">AI Interview Simulator</h1>
-            <p className="text-gray-500 text-sm">Chat or speak — your AI interviewer is ready</p>
+            <h1 className="text-3xl font-semibold text-slate-900 mb-2">Interview Simulator</h1>
+            <p className="text-slate-600 text-sm">Practice interviews with AI feedback</p>
           </div>
 
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6">
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Select Job Role</label>
+          <div className="bg-white border border-slate-200 rounded-lg p-6">
+            <label className="block text-xs font-semibold text-slate-900 uppercase tracking-widest mb-3">
+              Select Job Role
+            </label>
             <select value={jobRole} onChange={(e) => setJobRole(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white mb-5 outline-none focus:border-violet-500/50 transition-all text-sm">
-              <option value="">-- Choose a role --</option>
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-900 mb-5 outline-none focus:border-blue-500 transition-all text-sm">
+              <option value="">Choose a role</option>
               {JOB_ROLES.map((role) => (
                 <option key={role} value={role}>{role}</option>
               ))}
             </select>
 
-            {/* Input mode toggle */}
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Answer Mode</label>
+            <label className="block text-xs font-semibold text-slate-900 uppercase tracking-widest mb-3">
+              Answer Mode
+            </label>
             <div className="grid grid-cols-2 gap-3 mb-5">
               <button onClick={() => setInputMode("text")}
-                className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-medium transition-all
+                className={`py-3 rounded-lg border text-sm font-medium transition-all
                   ${inputMode === "text"
-                    ? "bg-violet-600/20 border-violet-500/40 text-violet-300"
-                    : "bg-white/[0.03] border-white/10 text-gray-500 hover:text-white"}`}>
-                ⌨️ Type
+                    ? "bg-blue-600 border-blue-600 text-white"
+                    : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"}`}>
+                Type
               </button>
               <button onClick={() => setInputMode("voice")}
-                className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-medium transition-all
+                className={`py-3 rounded-lg border text-sm font-medium transition-all
                   ${inputMode === "voice"
-                    ? "bg-pink-600/20 border-pink-500/40 text-pink-300"
-                    : "bg-white/[0.03] border-white/10 text-gray-500 hover:text-white"}`}>
-                🎙️ Speak
+                    ? "bg-blue-600 border-blue-600 text-white"
+                    : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"}`}>
+                Voice
               </button>
             </div>
 
-            {inputMode === "voice" && (
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 mb-5">
-                <p className="text-amber-300 text-xs">🎙️ Voice mode: AI will also read questions aloud. Use Chrome for best results.</p>
-              </div>
-            )}
-
             <button onClick={startInterview} disabled={!jobRole || loading}
-              className="w-full bg-gradient-to-r from-violet-600 to-pink-600 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed py-3 rounded-xl font-semibold transition-all text-sm">
-              {loading ? "Preparing interview..." : "Start Interview 🚀"}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all text-sm">
+              {loading ? "Preparing..." : "Start Interview"}
             </button>
-
-            <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-              {["5 Questions", "AI Scoring", "Voice + Text"].map((f) => (
-                <div key={f} className="bg-white/[0.03] rounded-lg py-2 px-1">
-                  <p className="text-gray-500 text-xs">{f}</p>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </div>
@@ -415,109 +362,90 @@ function Interview() {
   }
 
   return (
-    <div className="min-h-screen bg-[#060608] flex flex-col">
-      {/* Header */}
-      <div className="border-b border-white/5 px-6 py-4 flex items-center justify-between bg-[#060608]/80 backdrop-blur-xl sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-sm">🤖</div>
-          <div>
-            <p className="text-sm font-semibold text-white">AI Interviewer</p>
-            <p className="text-xs text-gray-500">{jobRole}</p>
-          </div>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between bg-white sticky top-0 z-10">
+        <div>
+          <p className="text-sm font-semibold text-slate-900">Interview</p>
+          <p className="text-xs text-slate-600">{jobRole}</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Mode toggle in header */}
-          <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-slate-100 border border-slate-200 rounded-lg p-1">
             <button onClick={() => { setInputMode("text"); if (isRecording) { recognitionRef.current?.stop(); setIsRecording(false); } }}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${inputMode === "text" ? "bg-violet-600 text-white" : "text-gray-500 hover:text-white"}`}>
-              ⌨️ Type
+              className={`px-3 py-1 rounded text-xs font-medium transition-all ${inputMode === "text" ? "bg-blue-600 text-white" : "text-slate-700 hover:text-slate-900"}`}>
+              Type
             </button>
             <button onClick={() => setInputMode("voice")}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${inputMode === "voice" ? "bg-pink-600 text-white" : "text-gray-500 hover:text-white"}`}>
-              🎙️ Voice
+              className={`px-3 py-1 rounded text-xs font-medium transition-all ${inputMode === "voice" ? "bg-blue-600 text-white" : "text-slate-700 hover:text-slate-900"}`}>
+              Voice
             </button>
           </div>
           {!sessionComplete && (
-            <div className="bg-white/5 border border-white/10 rounded-full px-3 py-1">
-              <p className="text-xs text-gray-400">Q{currentQ + 1}/{questions.length}</p>
+            <div className="bg-slate-100 border border-slate-200 rounded-lg px-3 py-1">
+              <p className="text-xs text-slate-700 font-medium">Q{currentQ + 1}/{questions.length}</p>
             </div>
           )}
-          <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-violet-500 to-pink-500 rounded-full transition-all duration-500"
+          <div className="w-20 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+            <div className="h-full bg-blue-600 rounded-full transition-all duration-500"
               style={{ width: `${(currentQ / questions.length) * 100}%` }} />
           </div>
         </div>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-6">
         {messages.map(renderMessage)}
         <div ref={bottomRef} />
       </div>
 
-      {/* Input area */}
       {!sessionComplete && (
-        <div className="border-t border-white/5 p-4 bg-[#060608]/80 backdrop-blur-xl">
+        <div className="border-t border-slate-200 p-4 bg-white">
           <div className="max-w-3xl mx-auto">
             {inputMode === "text" ? (
               <div className="flex gap-3 items-end">
                 <textarea ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown} placeholder="Type your answer... (Enter to send)"
+                  onKeyDown={handleKeyDown} placeholder="Type your answer..."
                   rows={2} disabled={evaluating}
-                  className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3 text-white text-sm outline-none resize-none focus:border-violet-500/40 transition-all placeholder:text-gray-600 disabled:opacity-50" />
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-900 text-sm outline-none resize-none focus:border-blue-500 transition-all placeholder:text-slate-500 disabled:bg-slate-100" />
                 <button onClick={submitAnswer} disabled={!input.trim() || evaluating}
-                  className="w-11 h-11 bg-gradient-to-br from-violet-600 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-all">
-                  {evaluating
-                    ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    : <span className="text-lg">↑</span>}
+                  className="w-11 h-11 bg-blue-600 text-white rounded-lg flex items-center justify-center flex-shrink-0 disabled:bg-slate-300 disabled:cursor-not-allowed hover:bg-blue-700 transition-all font-semibold">
+                  {evaluating ? "..." : "Send"}
                 </button>
               </div>
             ) : (
-              /* Voice mode UI */
               <div className="flex flex-col items-center gap-4">
-                {/* Transcript preview */}
                 {input && (
-                  <div className="w-full bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3 text-sm text-gray-300 min-h-[60px]">
-                    <p className="text-xs text-gray-600 mb-1">Transcript:</p>
+                  <div className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-700 min-h-[60px]">
+                    <p className="text-xs text-slate-600 mb-1">Transcript:</p>
                     {input}
                   </div>
                 )}
                 <div className="flex items-center gap-4">
-                  {/* Record button */}
                   <button onClick={toggleRecording} disabled={evaluating}
-                    className={`relative w-20 h-20 rounded-full flex items-center justify-center text-3xl transition-all duration-300 disabled:opacity-40
+                    className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 disabled:bg-slate-300 font-semibold text-sm
                       ${isRecording
-                        ? "bg-rose-600 shadow-lg shadow-rose-500/30 scale-110"
-                        : "bg-gradient-to-br from-violet-600 to-pink-600 hover:scale-105 shadow-lg shadow-violet-500/20"}`}>
-                    {isRecording && (
-                      <span className="absolute inset-0 rounded-full bg-rose-500/40 animate-ping" />
-                    )}
-                    <span className="relative">{isRecording ? "⏹" : "🎙️"}</span>
+                        ? "bg-red-600 text-white scale-110"
+                        : "bg-blue-600 text-white hover:bg-blue-700 hover:scale-105"}`}>
+                    {isRecording && <span className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />}
+                    <span className="relative">{isRecording ? "Stop" : "Record"}</span>
                   </button>
 
-                  {/* Submit voice answer */}
                   {input && !isRecording && (
                     <button onClick={submitAnswer} disabled={evaluating}
-                      className="bg-gradient-to-r from-violet-600 to-pink-600 px-6 py-3 rounded-xl text-sm font-semibold disabled:opacity-40 hover:opacity-90 transition-all">
-                      {evaluating ? "Evaluating..." : "Submit Answer →"}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-all">
+                      {evaluating ? "Evaluating..." : "Submit"}
                     </button>
                   )}
 
-                  {/* Clear */}
                   {input && (
-                    <button onClick={() => { setInput(""); setTranscript(""); }}
-                      className="text-gray-600 hover:text-gray-400 text-sm transition-colors">
+                    <button onClick={() => setInput("")}
+                      className="text-slate-600 hover:text-slate-900 text-sm transition-colors">
                       Clear
                     </button>
                   )}
                 </div>
-                <p className="text-gray-600 text-xs">
-                  {isRecording ? "🔴 Recording... speak now" : input ? "Review your answer, then submit" : "Tap the mic to start speaking"}
+                <p className="text-slate-600 text-xs">
+                  {isRecording ? "Recording..." : input ? "Review and submit" : "Tap record to speak"}
                 </p>
               </div>
-            )}
-            {inputMode === "text" && (
-              <p className="text-center text-gray-600 text-xs mt-2">Press Enter to send · Shift+Enter for new line</p>
             )}
           </div>
         </div>

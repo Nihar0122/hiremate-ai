@@ -2,56 +2,51 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const NAV_ITEMS = [
-  { path: "/dashboard", label: "Dashboard", icon: "⚡" },
-  { path: "/resume-analyzer", label: "Resume Analyzer", icon: "📄" },
-  { path: "/interview", label: "Interview Sim", icon: "🎯" },
+  { path: "/dashboard", label: "Dashboard", icon: "□" },
+  { path: "/resume-analyzer", label: "Resume Analyzer", icon: "⊞" },
+  { path: "/interview", label: "Interview", icon: "◇" },
 ];
 
 function Sidebar({ token, onLogout }) {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <aside
       className={`fixed top-0 left-0 h-full z-40 flex flex-col transition-all duration-300
-        ${collapsed ? "w-16" : "w-56"}
-        bg-[#0a0a0f] border-r border-white/5`}
-      style={{ backdropFilter: "blur(20px)" }}
+        ${collapsed ? "w-20" : "w-64"}
+        bg-slate-950 border-r border-slate-800`}
     >
       {/* Logo */}
-      <div className="flex items-center justify-between px-4 py-5 border-b border-white/5">
+      <div className="flex items-center justify-between px-5 py-6 border-b border-slate-800">
         {!collapsed && (
-          <span className="font-black text-lg tracking-tight bg-gradient-to-r from-violet-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-            HireMate AI
+          <span className="font-semibold text-lg text-slate-50 tracking-tight">
+            HireMate
           </span>
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="text-gray-500 hover:text-white transition-colors ml-auto"
+          className="text-slate-500 hover:text-slate-300 transition-colors ml-auto"
         >
           {collapsed ? "→" : "←"}
         </button>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-4 space-y-1 px-2">
+      <nav className="flex-1 py-4 space-y-2 px-3">
         {token && NAV_ITEMS.map((item) => {
           const active = location.pathname === item.path;
           return (
             <Link key={item.path} to={item.path}>
-              <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group
+              <div className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
                 ${active
-                  ? "bg-gradient-to-r from-violet-600/30 to-pink-600/20 border border-violet-500/30 text-white"
-                  : "text-gray-500 hover:text-white hover:bg-white/5"}`}
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"}`}
               >
-                <span className="text-lg">{item.icon}</span>
+                <span className="text-base font-light">{item.icon}</span>
                 {!collapsed && (
-                  <span className={`text-sm font-medium ${active ? "text-white" : ""}`}>
-                    {item.label}
-                  </span>
-                )}
-                {active && !collapsed && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-violet-400" />
+                  <span className="text-sm font-medium">{item.label}</span>
                 )}
               </div>
             </Link>
@@ -61,14 +56,14 @@ function Sidebar({ token, onLogout }) {
         {!token && (
           <>
             <Link to="/login">
-              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:text-white hover:bg-white/5 transition-all">
-                <span>🔐</span>
+              <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all">
+                <span className="text-base font-light">→</span>
                 {!collapsed && <span className="text-sm font-medium">Login</span>}
               </div>
             </Link>
             <Link to="/register">
-              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-500 hover:text-white hover:bg-white/5 transition-all">
-                <span>🚀</span>
+              <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all">
+                <span className="text-base font-light">+</span>
                 {!collapsed && <span className="text-sm font-medium">Register</span>}
               </div>
             </Link>
@@ -76,19 +71,20 @@ function Sidebar({ token, onLogout }) {
         )}
       </nav>
 
-      {/* Bottom - logout */}
+      {/* Logout */}
+      
       {token && (
-        <div className="px-2 py-4 border-t border-white/5">
-          <button
-            onClick={onLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-              text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
-          >
-            <span>🚪</span>
-            {!collapsed && <span className="text-sm font-medium">Logout</span>}
-          </button>
-        </div>
-      )}
+  <div className="px-3 py-4 border-t border-slate-800">
+    <button
+      onClick={onLogout}
+      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg
+        text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all"
+    >
+      <span className="text-base font-light">←</span>
+      {!collapsed && <span className="text-sm font-medium">Logout</span>}
+    </button>
+  </div>
+)}
     </aside>
   );
 }
