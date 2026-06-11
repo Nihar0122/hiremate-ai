@@ -16,7 +16,7 @@ function Dashboard() {
 
   const fetchStats = async (token) => {
     try {
-      const res = await axios.get("http://localhost:5000/api/dashboard/stats", {
+      const res = await axios.get("https://hiremate-ai-0st4.onrender.com/api/dashboard/stats", {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStats(res.data);

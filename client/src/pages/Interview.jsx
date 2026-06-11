@@ -92,7 +92,7 @@ function Interview() {
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/interview/generate",
+        "https://hiremate-ai-0st4.onrender.com/api/interview/generate",
         { jobRole },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -135,7 +135,7 @@ function Interview() {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/interview/evaluate",
+       "https://hiremate-ai-0st4.onrender.com/api/interview/evaluate",
         { question: questions[currentQ], answer: userAnswer, jobRole },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -172,7 +172,7 @@ function Interview() {
 
         try {
           await axios.post(
-            "http://localhost:5000/api/interview/save",
+            "https://hiremate-ai-0st4.onrender.com/api/interview/save",
             { jobRole, overallScore: finalAvg, totalQuestions: questions.length, evaluations: newEvaluations },
             { headers: { Authorization: `Bearer ${token}` } }
           );
