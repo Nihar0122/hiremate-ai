@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import PrivateRoute from "./components/PrivateRoute";
 import Home from "./pages/Home";
@@ -30,7 +30,7 @@ function App() {
   };
 
   return (
-    <Router>
+    
       <div className="flex min-h-screen bg-slate-50">
         {/* Mobile Header */}
         {isMobile && token && (
@@ -80,7 +80,7 @@ function App() {
           </Routes>
         </main>
       </div>
-    </Router>
+    
   );
 }
 
