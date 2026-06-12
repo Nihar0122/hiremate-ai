@@ -68,7 +68,7 @@ function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { label: "Resume Scans", value: stats?.totalScans || 0, color: "blue" },
             { label: "Interviews Done", value: stats?.totalInterviews || 0, color: "slate" },

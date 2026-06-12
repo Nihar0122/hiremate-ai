@@ -391,7 +391,7 @@ function Interview() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-6">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
         {messages.map(renderMessage)}
         <div ref={bottomRef} />
       </div>

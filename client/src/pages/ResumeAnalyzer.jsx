@@ -69,7 +69,7 @@ function ResumeAnalyzer() {
           Upload Resume (PDF only)
         </label>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
           <input
             type="file"
             accept=".pdf"
@@ -86,9 +86,9 @@ function ResumeAnalyzer() {
           <button
             onClick={handleUpload}
             disabled={loading || !file}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 
-                       disabled:cursor-not-allowed px-6 py-2 rounded-lg 
-                       font-semibold transition-all"
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 
+           disabled:cursor-not-allowed px-6 py-2 rounded-lg 
+           font-semibold transition-all"
           >
             {loading ? "Analyzing..." : "Analyze Resume"}
           </button>
