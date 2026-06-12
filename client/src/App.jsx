@@ -47,7 +47,12 @@ function App() {
         )}
 
         {/* Sidebar */}
-        <Sidebar token={token} onLogout={handleLogout} />
+        <Sidebar 
+           token={token} 
+           onLogout={handleLogout} 
+           mobileMenuOpen={mobileMenuOpen}
+           setMobileMenuOpen={setMobileMenuOpen}
+        />
 
         {/* Mobile Menu Toggle */}
         {isMobile && token && mobileMenuOpen && (

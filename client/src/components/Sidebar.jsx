@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-function Sidebar({ token, onLogout }) {
+function Sidebar({ token, onLogout, mobileMenuOpen, setMobileMenuOpen }) {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
 
   useEffect(() => {
     const handleResize = () => {
