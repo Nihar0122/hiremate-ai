@@ -2,7 +2,6 @@ const fs = require("fs");
 const pdfParse = require("pdf-parse");
 const fetch = require("node-fetch");
 const ResumeResult = require("../models/ResumeResult");
-const authMiddleware = require("../middleware/authMiddleware");
 
 const analyzeResume = async (req, res) => {
   try {
@@ -42,7 +41,7 @@ ${resumeText}`;
     );
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       console.log("Gemini error:", data);
       return res.status(500).json({ message: "AI analysis failed", error: data });
@@ -52,8 +51,15 @@ ${resumeText}`;
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     const analysis = JSON.parse(jsonMatch[0]);
 
-    const ResumeResult = require("../models/ResumeResult");
-const authMiddleware = require("../middleware/authMiddleware");
+    await ResumeResult.create({
+      userId: req.user.id,
+      atsScore: analysis.atsScore,
+      placementProbability: analysis.placementProbability,
+      matchedSkills: analysis.matchedSkills,
+      missingSkills: analysis.missingSkills,
+      suggestions: analysis.suggestions,
+      summary: analysis.summary,
+    });
 
     res.json({
       message: "Resume analyzed successfully 🚀",
